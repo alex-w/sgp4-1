@@ -41,6 +41,7 @@ if(BUILD_EXAMPLES)
     add_subdirectory(sattrack)
     add_subdirectory(runtest)
     add_subdirectory(passpredict)
+    add_subdirectory(csvprop)
 endif()
 
 if(BUILD_TESTS)
