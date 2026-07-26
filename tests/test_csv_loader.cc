@@ -3,9 +3,44 @@
 #include <libsgp4/CsvTleLoader.h>
 #include <libsgp4/SGP4.h>
 #include <libsgp4/Eci.h>
+#include <filesystem>
 #include <fstream>
+#include <random>
 
 using namespace libsgp4;
+
+namespace
+{
+class TempFile
+{
+public:
+    explicit TempFile(const std::string& content,
+                      const std::string& suffix = ".csv")
+    {
+        auto dir = std::filesystem::temp_directory_path();
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_int_distribution<uint64_t> dis;
+        path_ = dir / ("sgp4_test_" + std::to_string(dis(gen)) + suffix);
+        std::ofstream f(path_);
+        f << content;
+    }
+
+    ~TempFile()
+    {
+        std::error_code ec;
+        std::filesystem::remove(path_, ec);
+    }
+
+    TempFile(const TempFile&) = delete;
+    TempFile& operator=(const TempFile&) = delete;
+
+    const std::filesystem::path& path() const { return path_; }
+
+private:
+    std::filesystem::path path_;
+};
+}
 
 static const char* CSV_LINE_GPS =
     "GPS BIIR-5  (PRN 22),2000-040A,2026-07-26T04:36:54.986112,2.00558057,"
@@ -105,12 +140,9 @@ TEST(CsvTleLoader, LoadFile)
         ".002,52.0,101.0,201.0,51.0,0,U,99998,999,200,"
         ".3E-5,.4E-6,0\n";
 
-    std::string path = "/tmp/test_tle_data.csv";
-    std::ofstream f(path);
-    f << csv_content;
-    f.close();
+    TempFile tmp(csv_content);
 
-    std::vector<Tle> tles = LoadCsvTleFile(path);
+    std::vector<Tle> tles = LoadCsvTleFile(tmp.path().string());
     ASSERT_EQ(tles.size(), 2u);
     EXPECT_EQ(tles[0].NoradNumber(), 99999u);
     EXPECT_EQ(tles[1].NoradNumber(), 99998u);
@@ -126,22 +158,17 @@ TEST(CsvTleLoader, FileNotFound)
 
 TEST(CsvTleLoader, EmptyFile)
 {
-    std::string path = "/tmp/test_tle_empty.csv";
-    std::ofstream f(path);
-    f.close();
+    TempFile tmp("");
 
-    std::vector<Tle> tles = LoadCsvTleFile(path);
+    std::vector<Tle> tles = LoadCsvTleFile(tmp.path().string());
     EXPECT_TRUE(tles.empty());
 }
 
 TEST(CsvTleLoader, HeaderOnly)
 {
-    std::string path = "/tmp/test_tle_header.csv";
-    std::ofstream f(path);
-    f << "OBJECT_NAME,OBJECT_ID,EPOCH,MEAN_MOTION\n";
-    f.close();
+    TempFile tmp("OBJECT_NAME,OBJECT_ID,EPOCH,MEAN_MOTION\n");
 
-    std::vector<Tle> tles = LoadCsvTleFile(path);
+    std::vector<Tle> tles = LoadCsvTleFile(tmp.path().string());
     EXPECT_TRUE(tles.empty());
 }
 
