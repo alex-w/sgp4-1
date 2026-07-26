@@ -1,39 +1,33 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 3.13.4)
-PROJECT(SGP4)
+cmake_minimum_required(VERSION 3.14)
 
-if (POLICY CMP0054)
-    cmake_policy(SET CMP0054 NEW)
-endif()
+project(SGP4
+    VERSION 1.0.0
+    DESCRIPTION "SGP4 satellite orbit propagation library"
+    LANGUAGES CXX)
+
+include(GNUInstallDirs)
+include(CMakePackageConfigHelpers)
 
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-    set(CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/install" CACHE PATH "..." FORCE)
+    set(CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/install" CACHE PATH "Install prefix" FORCE)
 endif()
 
-set(CMAKE_INSTALL_LIBDIR "/lib64")
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-if (NOT CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wextra")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wshadow")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wnon-virtual-dtor")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pedantic")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-long-long")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wcast-align")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wsign-conversion")
-endif(NOT CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+option(BUILD_EXAMPLES "Build example programs (sattrack, runtest, passpredict)" ON)
 
-set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
-
-include_directories(libsgp4)
+configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/SGP4-VER.TLE"
+    "${CMAKE_CURRENT_BINARY_DIR}/SGP4-VER.TLE"
+    COPYONLY)
 
 add_subdirectory(libsgp4)
-add_subdirectory(sattrack)
-add_subdirectory(runtest)
-add_subdirectory(passpredict)
 
-file(COPY SGP4-VER.TLE DESTINATION ${PROJECT_BINARY_DIR})
+if(BUILD_EXAMPLES)
+    add_subdirectory(sattrack)
+    add_subdirectory(runtest)
+    add_subdirectory(passpredict)
+endif()

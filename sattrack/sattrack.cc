@@ -15,10 +15,10 @@
  */
 
 
-#include <CoordTopocentric.h>
-#include <CoordGeodetic.h>
-#include <Observer.h>
-#include <SGP4.h>
+#include <libsgp4/CoordTopocentric.h>
+#include <libsgp4/CoordGeodetic.h>
+#include <libsgp4/Observer.h>
+#include <libsgp4/SGP4.h>
 
 #include <iostream>
 

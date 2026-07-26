@@ -1,0 +1,5 @@
+@PACKAGE_INIT@
+
+include("${CMAKE_CURRENT_LIST_DIR}/SGP4Targets.cmake")
+
+check_required_components(SGP4)

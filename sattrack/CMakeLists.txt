@@ -1,7 +1,2 @@
-set(SRCS
-    sattrack.cc)
-
-add_executable(sattrack
-    ${SRCS})
-target_link_libraries(sattrack
-    sgp4)
+add_executable(sattrack sattrack.cc)
+target_link_libraries(sattrack PRIVATE SGP4::sgp4)

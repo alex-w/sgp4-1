@@ -1,7 +1,2 @@
-set(SRCS
-    passpredict.cc)
-
-add_executable(passpredict
-    ${SRCS})
-target_link_libraries(passpredict
-    sgp4)
+add_executable(passpredict passpredict.cc)
+target_link_libraries(passpredict PRIVATE SGP4::sgp4)
