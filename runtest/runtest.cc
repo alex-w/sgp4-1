@@ -29,7 +29,7 @@
 #include <vector>
 #include <cstdlib>
 
-void RunTle(libsgp4::Tle tle, double start, double end, double inc)
+void RunTle(const libsgp4::Tle& tle, double start, double end, double inc)
 {
     double current = start;
     libsgp4::SGP4 model(tle);
@@ -82,7 +82,6 @@ void RunTle(libsgp4::Tle tle, double start, double end, double inc)
 
             if (!first_run)
             {
-                // print out position on first run
                 error = true;
             }
 
@@ -176,11 +175,9 @@ void RunTest(const char* infile)
     std::string line2;
     std::string parameters;
 
-    while (!file.eof())
+    std::string line;
+    while (std::getline(file, line))
     {
-        std::string line;
-        std::getline(file, line);
-
         libsgp4::Util::Trim(line);
 
         /*
@@ -237,9 +234,9 @@ void RunTest(const char* infile)
                 tokenize(parameters, tokens);
                 if (tokens.size() >= 3)
                 {
-                    start = atof(tokens[0].c_str());
-                    end = atof(tokens[1].c_str());
-                    inc = atof(tokens[2].c_str());
+                    start = std::stod(tokens[0]);
+                    end = std::stod(tokens[1]);
+                    inc = std::stod(tokens[2]);
                 }
             }
 
@@ -277,5 +274,5 @@ int main()
 
     RunTest(file_name);
 
-    return 1;
+    return 0;
 }

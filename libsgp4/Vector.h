@@ -99,7 +99,7 @@ public:
      * Subtract operator
      * @param v value to suctract from
      */
-    Vector operator-(const Vector& v)
+    Vector operator-(const Vector& v) const
     {
         return Vector(x - v.x,
                 y - v.y,

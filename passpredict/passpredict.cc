@@ -22,8 +22,10 @@
 #include <libsgp4/CoordGeodetic.h>
 
 #include <cmath>
+#include <iomanip>
 #include <iostream>
 #include <list>
+#include <sstream>
 
 struct PassDetails
 {
@@ -346,44 +348,50 @@ int main()
 
     std::cout << tle << std::endl;
 
-    /*
-     * generate 7 day schedule
-     */
     libsgp4::DateTime start_date = libsgp4::DateTime::Now(true);
     libsgp4::DateTime end_date(start_date.AddDays(7.0));
-
-    std::list<struct PassDetails> pass_list;
 
     std::cout << "Start time: " << start_date << std::endl;
     std::cout << "End time  : " << end_date << std::endl << std::endl;
 
-    /*
-     * generate passes
-     */
-    pass_list = GeneratePassList(geo, sgp4, start_date, end_date, 180);
-
-    if (pass_list.begin() == pass_list.end())
+    try
     {
-        std::cout << "No passes found" << std::endl;
-    }
-    else
-    {
-        std::stringstream ss;
+        std::list<struct PassDetails> pass_list = GeneratePassList(geo, sgp4, start_date, end_date, 180);
 
-        ss << std::right << std::setprecision(1) << std::fixed;
-
-        std::list<struct PassDetails>::const_iterator itr = pass_list.begin();
-        do
+        if (pass_list.begin() == pass_list.end())
         {
-            ss  << "AOS: " << itr->aos
-                << ", LOS: " << itr->los
-                << ", Max El: " << std::setw(4) << libsgp4::Util::RadiansToDegrees(itr->max_elevation)
-                << ", Duration: " << (itr->los - itr->aos)
-                << std::endl;
+            std::cout << "No passes found" << std::endl;
         }
-        while (++itr != pass_list.end());
+        else
+        {
+            std::stringstream ss;
 
-        std::cout << ss.str();
+            ss << std::right << std::setprecision(1) << std::fixed;
+
+            std::list<struct PassDetails>::const_iterator itr = pass_list.begin();
+            do
+            {
+                ss  << "AOS: " << itr->aos
+                    << ", LOS: " << itr->los
+                    << ", Max El: " << std::setw(4) << libsgp4::Util::RadiansToDegrees(itr->max_elevation)
+                    << ", Duration: " << (itr->los - itr->aos)
+                    << std::endl;
+            }
+            while (++itr != pass_list.end());
+
+            std::cout << ss.str();
+        }
+    }
+    catch (libsgp4::SatelliteException& e)
+    {
+        std::cerr << "Satellite error: " << e.what() << std::endl;
+        return 1;
+    }
+    catch (libsgp4::DecayedException& e)
+    {
+        std::cerr << "Satellite decayed: " << e.what() << std::endl;
+        std::cerr << "Position: " << e.Position() << std::endl;
+        return 1;
     }
 
     return 0;

@@ -226,7 +226,7 @@ inline TimeSpan operator-(const TimeSpan& ts1, const TimeSpan& ts2)
     return ts1.Subtract(ts2);
 }
 
-inline bool operator==(const TimeSpan& ts1, TimeSpan& ts2)
+inline bool operator==(const TimeSpan& ts1, const TimeSpan& ts2)
 {
     return ts1.Equals(ts2);
 }

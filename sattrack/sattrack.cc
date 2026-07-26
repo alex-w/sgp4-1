@@ -34,22 +34,25 @@ int main()
 
     for (int i = 0; i < 10; ++i)
     {
-        libsgp4::DateTime dt = tle.Epoch().AddMinutes(i * 10);
-        /*
-         * calculate satellite position
-         */
-        libsgp4::Eci eci = sgp4.FindPosition(dt);
-        /*
-         * get look angle for observer to satellite
-         */
-        libsgp4::CoordTopocentric topo = obs.GetLookAngle(eci);
-        /*
-         * convert satellite position to geodetic coordinates
-         */
-        libsgp4::CoordGeodetic geo = eci.ToGeodetic();
+        try
+        {
+            libsgp4::DateTime dt = tle.Epoch().AddMinutes(i * 10);
+            libsgp4::Eci eci = sgp4.FindPosition(dt);
+            libsgp4::CoordTopocentric topo = obs.GetLookAngle(eci);
+            libsgp4::CoordGeodetic geo = eci.ToGeodetic();
 
-        std::cout << dt << " " << topo << " " << geo << std::endl;
-    };
+            std::cout << dt << " " << topo << " " << geo << std::endl;
+        }
+        catch (libsgp4::SatelliteException& e)
+        {
+            std::cerr << "Satellite error: " << e.what() << std::endl;
+        }
+        catch (libsgp4::DecayedException& e)
+        {
+            std::cerr << "Satellite decayed: " << e.what() << std::endl;
+            std::cerr << "Position: " << e.Position() << std::endl;
+        }
+    }
 
     return 0;
 }
