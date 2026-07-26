@@ -1,6 +1,7 @@
 set(SGP4_SOURCES
     CoordGeodetic.cc
     CoordTopocentric.cc
+    CsvTleLoader.cc
     DateTime.cc
     DecayedException.cc
     Eci.cc
@@ -19,6 +20,7 @@ set(SGP4_SOURCES
 set(SGP4_HEADERS
     CoordGeodetic.h
     CoordTopocentric.h
+    CsvTleLoader.h
     DateTime.h
     DecayedException.h
     Eci.h

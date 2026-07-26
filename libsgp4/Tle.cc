@@ -17,6 +17,9 @@
 
 #include "Tle.h"
 
+#include <cstdio>
+#include <sstream>
+#include <vector>
 #include <locale>
 
 namespace libsgp4
@@ -371,6 +374,139 @@ void Tle::ExtractExponential(const std::string& str, double& val)
     {
         throw TleException("Failed to convert value to double");
     }
+}
+
+/**
+ * Construct a Tle directly from parsed fields.
+ */
+Tle::Tle(const std::string& name,
+         unsigned int norad_number,
+         const std::string& int_designator,
+         const DateTime& epoch,
+         double mean_motion_dt2,
+         double mean_motion_ddt6,
+         double bstar,
+         double inclination,
+         double right_ascending_node,
+         double eccentricity,
+         double argument_perigee,
+         double mean_anomaly,
+         double mean_motion,
+         unsigned int orbit_number)
+    : name_(name)
+    , int_designator_(int_designator)
+    , epoch_(epoch)
+    , mean_motion_dt2_(mean_motion_dt2)
+    , mean_motion_ddt6_(mean_motion_ddt6)
+    , bstar_(bstar)
+    , inclination_(inclination)
+    , right_ascending_node_(right_ascending_node)
+    , eccentricity_(eccentricity)
+    , argument_perigee_(argument_perigee)
+    , mean_anomaly_(mean_anomaly)
+    , mean_motion_(mean_motion)
+    , norad_number_(norad_number)
+    , orbit_number_(orbit_number)
+{
+}
+
+namespace
+{
+    std::vector<std::string> SplitCsv(const std::string& line)
+    {
+        std::vector<std::string> fields;
+        std::istringstream stream(line);
+        std::string field;
+        while (std::getline(stream, field, ','))
+        {
+            if (!field.empty() && field.back() == '\r')
+            {
+                field.pop_back();
+            }
+            fields.push_back(std::move(field));
+        }
+        return fields;
+    }
+
+    int ParseIsoMicrosecond(const std::string& s)
+    {
+        if (s.empty())
+        {
+            return 0;
+        }
+        std::string digits;
+        for (char c : s)
+        {
+            if (std::isdigit(static_cast<unsigned char>(c)))
+            {
+                digits += c;
+            }
+        }
+        if (digits.empty())
+        {
+            return 0;
+        }
+        while (digits.length() < 6)
+        {
+            digits += '0';
+        }
+        return std::stoi(digits.substr(0, 6));
+    }
+}
+
+Tle Tle::FromCsv(const std::string& csv_line)
+{
+    const unsigned int EXPECTED_FIELDS = 17;
+    std::vector<std::string> fields = SplitCsv(csv_line);
+
+    if (fields.size() != EXPECTED_FIELDS)
+    {
+        throw TleException("Invalid CSV field count");
+    }
+
+    const std::string& name = fields[0];
+    const std::string& int_designator = fields[1];
+    const std::string& epoch_str = fields[2];
+    double mean_motion = std::stod(fields[3]);
+    double eccentricity = std::stod(fields[4]);
+    double inclination = std::stod(fields[5]);
+    double raan = std::stod(fields[6]);
+    double arg_perigee = std::stod(fields[7]);
+    double mean_anomaly = std::stod(fields[8]);
+    // fields[9] = ephemeris type (unused)
+    // fields[10] = classification type (unused)
+    unsigned int norad_number = static_cast<unsigned int>(std::stoul(fields[11]));
+    // fields[12] = element set number (unused)
+    unsigned int orbit_number = static_cast<unsigned int>(std::stoul(fields[13]));
+    double bstar = std::stod(fields[14]);
+    double mean_motion_dt2 = std::stod(fields[15]);
+    double mean_motion_ddt6 = std::stod(fields[16]);
+
+    int year = 0, month = 0, day = 0, hour = 0, minute = 0, second = 0;
+    if (std::sscanf(epoch_str.c_str(), "%d-%d-%dT%d:%d:%d",
+                     &year, &month, &day, &hour, &minute, &second) != 6)
+    {
+        throw TleException("Invalid epoch format");
+    }
+    int microsecond = ParseIsoMicrosecond(
+        epoch_str.substr(epoch_str.rfind('.') + 1));
+
+    DateTime epoch(year, month, day, hour, minute, second, microsecond);
+
+    return Tle(name,
+               norad_number,
+               int_designator,
+               epoch,
+               mean_motion_dt2,
+               mean_motion_ddt6,
+               bstar,
+               inclination,
+               raan,
+               eccentricity,
+               arg_perigee,
+               mean_anomaly,
+               mean_motion,
+               orbit_number);
 }
 
 } // namespace libsgp4

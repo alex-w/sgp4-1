@@ -59,6 +59,22 @@ public:
     }
 
     /**
+     * @details Construct a Tle from a CelesTrak CSV data line.
+     *
+     * Expected CSV columns (header row is not parsed here):
+     *   OBJECT_NAME,OBJECT_ID,EPOCH,MEAN_MOTION,ECCENTRICITY,
+     *   INCLINATION,RA_OF_ASC_NODE,ARG_OF_PERICENTER,MEAN_ANOMALY,
+     *   EPHEMERIS_TYPE,CLASSIFICATION_TYPE,NORAD_CAT_ID,ELEMENT_SET_NO,
+     *   REV_AT_EPOCH,BSTAR,MEAN_MOTION_DOT,MEAN_MOTION_DDOT
+     *
+     * @param csv_line A single CSV data line (no header)
+     * @returns A Tle object with all orbital elements populated.
+     *          Line1() and Line2() will return empty strings.
+     * @throws TleException if the line is malformed or has wrong field count
+     */
+    static Tle FromCsv(const std::string& csv_line);
+
+    /**
      * Copy constructor
      * @param[in] tle Tle object to copy from
      */
@@ -303,6 +319,21 @@ public:
     }
 
 private:
+    Tle(const std::string& name,
+        unsigned int norad_number,
+        const std::string& int_designator,
+        const DateTime& epoch,
+        double mean_motion_dt2,
+        double mean_motion_ddt6,
+        double bstar,
+        double inclination,
+        double right_ascending_node,
+        double eccentricity,
+        double argument_perigee,
+        double mean_anomaly,
+        double mean_motion,
+        unsigned int orbit_number);
+
     void Initialize();
     static bool IsValidLineLength(const std::string& str);
     void ExtractInteger(const std::string& str, unsigned int& val);
